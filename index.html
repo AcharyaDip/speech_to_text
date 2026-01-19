@@ -2,18 +2,25 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Speech to Text Agent</title>
+    <title>Speech to Text Academic Assistant</title>
+
+    <!-- Styles -->
     <link rel="stylesheet" href="style.css">
+
+    <!-- PDF & DOCX Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/8.0.2/docx.min.js"></script>
 </head>
 
 <body class="dark">
 
 <div class="chat-wrapper">
 
+    <!-- HEADER -->
     <header class="chat-header">
         <div>
-            <h1>Speech to Text Agent</h1>
-            <span>Web Speech API</span>
+            <h1>Speech to Text Academic Assistant</h1>
+            <span>Web Speech API + AI Notes</span>
         </div>
 
         <div class="header-controls">
@@ -24,23 +31,61 @@
                 <option value="bn-IN">Bengali</option>
             </select>
 
-            <button onclick="toggleTheme()">🌓</button>
+            <button onclick="toggleAcademicMode()">Academic Mode</button>
+            <button onclick="toggleTheme()">Theme</button>
         </div>
     </header>
 
-    <main id="chatArea" class="chat-area">
-        <div class="message system">
-            Click <strong>Start</strong> and speak. Your speech will appear here.
-        </div>
+    <!-- MAIN -->
+    <main class="chat-area split-view">
+
+        <!-- LEFT PANEL -->
+        <section class="panel">
+            <h3>Live Speech → Text</h3>
+            <div id="speechText" class="text-view">
+                Click <strong>Start</strong> and speak.
+            </div>
+        </section>
+
+        <!-- RIGHT PANEL -->
+        <section class="panel">
+            <h3>Live Summary (Editable)</h3>
+
+            <!-- TOOLBAR -->
+            <div class="editor-toolbar">
+                <select onchange="setAlignment(this.value)">
+                    <option value="left">Left</option>
+                    <option value="center">Center</option>
+                    <option value="right">Right</option>
+                    <option value="justify">Justify</option>
+                </select>
+
+                <select onchange="setFontSize(this.value)">
+                    <option value="14">14px</option>
+                    <option value="16" selected>16px</option>
+                    <option value="18">18px</option>
+                    <option value="20">20px</option>
+                </select>
+
+                <button onclick="formatText('bold')">B</button>
+                <button onclick="formatText('italic')">I</button>
+                <button onclick="formatText('underline')">U</button>
+            </div>
+
+            <div id="summaryText"
+                 class="text-editor"
+                 contenteditable="true">
+                Summary will appear here. You can edit manually.
+            </div>
+        </section>
+
     </main>
 
+    <!-- FOOTER -->
     <footer class="chat-controls">
-        <div class="waveform" id="waveform">
-            <span></span><span></span><span></span><span></span><span></span>
-        </div>
-
         <button onclick="startListening()">Start</button>
         <button onclick="stopListening()">Stop</button>
+        <button onclick="restartAll()">Restart</button>
         <button onclick="summarizeText()">Summarize</button>
         <button onclick="exportPDF()">PDF</button>
         <button onclick="exportDOC()">DOCX</button>
