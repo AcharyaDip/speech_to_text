@@ -1,111 +1,158 @@
-const SpeechRecognition =
-    window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition;
+let listening = false;
 
-const recognition = new SpeechRecognition();
-recognition.continuous = true;
-recognition.lang = "en-IN";
+const speechBox = document.getElementById("speechText");
+const summaryBox = document.getElementById("summaryText");
 
-let finalText = "";
+/* ================= SPEECH ================= */
 
-const chatArea = document.getElementById("chatArea");
-const waveform = document.getElementById("waveform");
+function initSpeech() {
+    const SpeechRecognition =
+        window.SpeechRecognition || window.webkitSpeechRecognition;
 
-/* Speech result */
-recognition.onresult = (event) => {
-    let text = "";
-    for (let i = event.resultIndex; i < event.results.length; i++) {
-        text += event.results[i][0].transcript;
-    }
+    recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = document.getElementById("language").value;
 
-    text = punctuate(text);
-    finalText += text + " ";
+    recognition.onresult = (event) => {
+        let finalText = "";
+        let interimText = "";
 
-    logSession(text);
-    typeMessage(text);
-};
+        for (let i = 0; i < event.results.length; i++) {
+            if (event.results[i].isFinal) {
+                finalText += event.results[i][0].transcript + " ";
+            } else {
+                interimText += event.results[i][0].transcript + " ";
+            }
+        }
 
-/* Typing animation */
-function typeMessage(text) {
-    const msg = document.createElement("div");
-    msg.className = "message user";
-    chatArea.appendChild(msg);
-
-    let i = 0;
-    const interval = setInterval(() => {
-        msg.textContent += text.charAt(i);
-        i++;
-        chatArea.scrollTop = chatArea.scrollHeight;
-        if (i >= text.length) clearInterval(interval);
-    }, 20);
+        speechBox.innerHTML =
+            finalText +
+            `<span class="live-highlight">${interimText}</span>`;
+    };
 }
 
-/* Start / Stop */
 function startListening() {
+    if (!recognition) initSpeech();
     recognition.start();
-    waveform.classList.add("active");
+    listening = true;
 }
 
 function stopListening() {
-    recognition.stop();
-    waveform.classList.remove("active");
+    if (recognition && listening) {
+        recognition.stop();
+        listening = false;
+    }
 }
 
-/* Restart */
-function restart() {
+/* ================= LANGUAGE ================= */
+
+function changeLanguage() {
+    if (recognition) {
+        recognition.lang = document.getElementById("language").value;
+    }
+}
+
+/* ================= SUMMARY ================= */
+
+function summarizeText() {
+    const text = speechBox.innerText.trim();
+    if (!text) return;
+
+    /* Offline fallback summary */
+    const summary =
+        text.split(".").slice(0, 3).join(".") + ".";
+
+    summaryBox.innerText = summary;
+}
+
+/* ================= AUTO-SAVE ================= */
+
+summaryBox.addEventListener("input", () => {
+    localStorage.setItem("savedSummary", summaryBox.innerHTML);
+});
+
+window.addEventListener("load", () => {
+    const saved = localStorage.getItem("savedSummary");
+    if (saved) summaryBox.innerHTML = saved;
+});
+
+/* ================= FORMAT ================= */
+
+function formatText(cmd) {
+    document.execCommand(cmd, false, null);
+}
+
+function setAlignment(value) {
+    summaryBox.style.textAlign = value;
+}
+
+function setFontSize(size) {
+    summaryBox.style.fontSize = size + "px";
+}
+
+/* ================= EXPORT ================= */
+
+function exportPDF() {
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF();
+    pdf.text(summaryBox.innerText, 10, 10);
+    pdf.save("summary.pdf");
+}
+
+function exportDOC() {
+    const text = summaryBox.innerText;
+
+    const doc = new docx.Document({
+        sections: [{
+            children: [new docx.Paragraph(text)]
+        }]
+    });
+
+    docx.Packer.toBlob(doc).then(blob => {
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "summary.docx";
+        link.click();
+    });
+}
+
+/* ================= RESET ================= */
+
+function restartAll() {
     stopListening();
-    finalText = "";
-    chatArea.innerHTML = `<div class="message system">Click Start and speak.</div>`;
+    speechBox.innerHTML = "Click <strong>Start</strong> and speak.";
+    summaryBox.innerHTML = "Summary will appear here. You can edit manually.";
+    localStorage.removeItem("savedSummary");
 }
 
-/* Theme */
+/* ================= UI ================= */
+
 function toggleTheme() {
-    document.body.classList.toggle("light");
     document.body.classList.toggle("dark");
 }
 
-/* Language */
-function changeLanguage() {
-    recognition.lang = document.getElementById("language").value;
+function toggleAcademicMode() {
+    document.body.classList.toggle("academic-mode");
+}
+/* ================= THEME TOGGLE ================= */
+function toggleTheme() {
+    if (document.body.classList.contains('dark')) {
+        document.body.classList.remove('dark');
+        document.body.classList.add('light');
+    } else {
+        document.body.classList.remove('light');
+        document.body.classList.add('dark');
+    }
 }
 
-/* Punctuation correction */
-function punctuate(text) {
-    text = text.trim();
-    text = text.charAt(0).toUpperCase() + text.slice(1);
-    if (!/[.!?]$/.test(text)) text += ".";
-    return text;
+function setHighContrast() {
+    document.body.classList.remove('dark','light','blue-theme','purple-theme','green-theme');
+    document.body.classList.add('high-contrast');
 }
 
-/* Summarization (heuristic) */
-function summarizeText() {
-    const sentences = finalText.split(".");
-    const summary = sentences.slice(0, 3).join(".") + ".";
-    typeMessage("Summary: " + summary);
-}
-
-/* Backend logging (localStorage) */
-function logSession(text) {
-    const logs = JSON.parse(localStorage.getItem("speechLogs")) || [];
-    logs.push({
-        time: new Date().toLocaleString(),
-        lang: recognition.lang,
-        text: text
-    });
-    localStorage.setItem("speechLogs", JSON.stringify(logs));
-}
-
-/* Export PDF */
-function exportPDF() {
-    const win = window.open("", "", "width=800,height=600");
-    win.document.write(`<pre>${finalText}</pre>`);
-    win.print();
-}
-
-/* Export DOCX */
-function exportDOC() {
-    const blob = new Blob([finalText], { type: "application/msword" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "speech.docx";
-    link.click();
+function setPreset(color) {
+    document.body.classList.remove('dark','light','high-contrast','blue-theme','purple-theme','green-theme');
+    document.body.classList.add(`${color}-theme`);
 }
