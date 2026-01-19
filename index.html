@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <title>Speech to Text Academic Assistant</title>
-
-    <!-- Styles -->
+    <!-- CSS in same folder -->
     <link rel="stylesheet" href="style.css">
-    <!-- PDF & DOCX Libraries -->
+
+    <!-- PDF & DOCX Libraries (CDN) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/8.0.2/docx.min.js"></script>
 </head>
-
 <body class="dark">
 
 <div class="chat-wrapper">
@@ -30,8 +29,14 @@
                 <option value="bn-IN">Bengali</option>
             </select>
 
+            <!-- Theme / Preset Toggles -->
+            <button onclick="toggleTheme()">Dark/Light</button>
+            <button onclick="setHighContrast()">High Contrast</button>
+            <button onclick="setPreset('blue')">Blue</button>
+            <button onclick="setPreset('purple')">Purple</button>
+            <button onclick="setPreset('green')">Green</button>
+
             <button onclick="toggleAcademicMode()">Academic Mode</button>
-            <button onclick="toggleTheme()">Theme</button>
         </div>
     </header>
 
@@ -71,9 +76,7 @@
                 <button onclick="formatText('underline')">U</button>
             </div>
 
-            <div id="summaryText"
-                 class="text-editor"
-                 contenteditable="true">
+            <div id="summaryText" class="text-editor" contenteditable="true">
                 Summary will appear here. You can edit manually.
             </div>
         </section>
@@ -92,6 +95,7 @@
 
 </div>
 
+<!-- JS in same folder -->
 <script src="script.js"></script>
 </body>
 </html>
