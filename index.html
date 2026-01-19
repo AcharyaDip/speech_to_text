@@ -6,21 +6,46 @@
     <link rel="stylesheet" href="style.css">
 </head>
 
-<body>
+<body class="dark">
 
-<div class="container">
-    <h2>Speech to Text Agent</h2>
+<div class="chat-wrapper">
 
-    <textarea id="output" placeholder="Click Start and speak..."></textarea>
+    <header class="chat-header">
+        <div>
+            <h1>Speech to Text Agent</h1>
+            <span>Web Speech API</span>
+        </div>
 
-    <div class="btn-group">
-        <button class="btn-start" onclick="startListening()">Start Speaking</button>
-        <button class="btn-save" onclick="saveText()">Save Text</button>
-    </div>
+        <div class="header-controls">
+            <select id="language" onchange="changeLanguage()">
+                <option value="en-IN">English (India)</option>
+                <option value="en-US">English (US)</option>
+                <option value="hi-IN">Hindi</option>
+                <option value="bn-IN">Bengali</option>
+            </select>
 
-    <footer>
-        Web Speech API | GitHub Pages Deployment
+            <button onclick="toggleTheme()">🌓</button>
+        </div>
+    </header>
+
+    <main id="chatArea" class="chat-area">
+        <div class="message system">
+            Click <strong>Start</strong> and speak. Your speech will appear here.
+        </div>
+    </main>
+
+    <footer class="chat-controls">
+        <div class="waveform" id="waveform">
+            <span></span><span></span><span></span><span></span><span></span>
+        </div>
+
+        <button onclick="startListening()">Start</button>
+        <button onclick="stopListening()">Stop</button>
+        <button onclick="summarizeText()">Summarize</button>
+        <button onclick="exportPDF()">PDF</button>
+        <button onclick="exportDOC()">DOCX</button>
     </footer>
+
 </div>
 
 <script src="script.js"></script>
